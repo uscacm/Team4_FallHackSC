@@ -55,7 +55,7 @@ gi.suggest = {
 		$g('search_count').className = 'center';
 		for(var i=0;i<cityLen;i++){
 			cityCode += '<a id="row'+i+'" class="data" href="http://www.facebook.com/'+cityJson[i].pid+'" target="_blank">'+cityJson[i].msg+'</a>';				
-			cityCode += '<span class="ctime">'+cityJson[i].ctime+'</span>';
+			cityCode += '<span class="ctime_date">'+cityJson[i].ctime+'</span>';
 			cityCode += '<span class="ctime">&nbsp;&nbsp;&nbsp;&nbsp;'+cityJson[i].group+'</span>';
                         cityCode += '<a class="author" id="row'+i+'" href="http://www.facebook.com/'+cityJson[i].nameid+'" target="_blank"> - Trojan '+cityJson[i].name+'</a><br/><br/>';				
 		}
@@ -64,7 +64,8 @@ gi.suggest = {
 		$g('search_count').innerHTML = '<span class="sc">About '+cityLen+' search results</span>';
 
                 for(var i=0;i<grpLen;i++){
-                        grpCode += '<span class="gp_name">'+groupJson[i][0]+'</span>';
+                        var gp = groupJson[i][0]
+                        grpCode += '<a class="gp_name" href="http://www.facebook.com/'+gp.split('_')[1]+'" target="_blank">'+gp.split('_')[0]+'</a>';
                         grpCode += '<span class="gp_value">&nbsp;&nbsp;('+groupJson[i][1]+')</span><br/>';
                 }
 		$g('groups').innerHTML = grpCode;
