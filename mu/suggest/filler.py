@@ -11,7 +11,6 @@ class AutoSuggestFiller():
         """
         #sentences = [ "Take out the trash", "Talk to the school bus driver" ]
         for dmp in Dump.objects.all():
-            print dmp
             index = int(dmp.pid.split('_')[1])
             #sentence = "%s : %s : %s : %s" % (attr.name, attr.suburb, attr.city, attr.state)
             sentence = dmp.msg
@@ -19,11 +18,14 @@ class AutoSuggestFiller():
             nameid = dmp.nameid
             ctime = dmp.ctime
             group = dmp.gp
+            gid = dmp.gid
+            name_temp = name.replace(' ',' @')
             sentence_temp = sentence.lower()
-            print 'Adding %s' % sentence
+            #print 'Adding %s' % sentence
             self.addSentence(sentence,index)
-            self.addMeta(index, name, nameid, ctime, group);
+            self.addMeta(index, name, nameid, ctime, group, gid);
             self.addWordPrefix(sentence_temp, index)
+            self.addWordPrefix('@'+name_temp.lower(), index)
 
     def addSentence(self, sentence, hashes):
         """
@@ -31,7 +33,7 @@ class AutoSuggestFiller():
         """
         self.r._client.hset('task',hashes, sentence)
 
-    def addMeta(self, hashes, name, nameid, ctime, group):
+    def addMeta(self, hashes, name, nameid, ctime, group, gid):
         """
         Add the complete sentence in the hashes
         """
@@ -39,6 +41,7 @@ class AutoSuggestFiller():
         self.r._client.hset(hashes, 'nameid', nameid)
         self.r._client.hset(hashes, 'ctime', ctime)
         self.r._client.hset(hashes, 'group', group)
+        self.r._client.hset(hashes, 'gid', gid)
 
     def addWordPrefix(self, sentence, hashes):
         """
@@ -49,7 +52,7 @@ class AutoSuggestFiller():
                 # Deletermin the prefix
                 prefix = word[:index+1]
                 # Add the prefix to the set along with the sentence hashes
-                print 'Adding task:%s' % prefix
+                #print 'Adding task:%s' % prefix
                 self.r._client.zadd('task:%s'%prefix, hashes, 0)
 
 a = AutoSuggestFiller()

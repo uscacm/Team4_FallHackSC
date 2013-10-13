@@ -1,7 +1,7 @@
-import pdb
+import random
 import simplejson
-from operator import itemgetter
 from datetime import datetime
+from operator import itemgetter
 from django.http import HttpResponse
 from django.core.cache import get_cache
 from django.template import RequestContext
@@ -11,10 +11,7 @@ def home(request):
     """
     Landing method
     """
-    if True:
-        return render_to_response('home/home.html',{}, RequestContext(request, { }) )
-    else:
-        return render_to_response('home/home.html',{}, RequestContext(request, { }) )
+    return render_to_response('home/home.html',{}, RequestContext(request, { }) )
 
 def autosuggest(request):
     """
@@ -34,23 +31,16 @@ def autosuggest(request):
         print e
         return HttpResponse('{"result":"failed","desc":"No Matches Found"}')
 
-def search(word):
-    """
-    Search for single word
-    """
-    r = get_cache('autosuggest')
-    hashes_list  = r._client.zrange(name="task:%s"%word,start=0, end=-1)
-    return answer(hashes_list)
-
 def searchincludespace(words):
     """
     Search in case of multiple words
     """
+    uid = str(random.randint(1,100))
     r = get_cache('autosuggest')
     set_list = ["task:%s"%word for word in words.split(' ')]
-    res = r._client.zinterstore("res", set_list)
-    hashes_list = r._client.zrange(name="res", start=0, end=-1)
-    return answer(hashes_list)
+    res = r._client.zinterstore("res"+uid, set_list)
+    hashes_list = r._client.zrange(name="res"+uid, start=0, end=-1)
+    return answer(reversed(hashes_list))
 
 def answer(hashes_list):
     """
@@ -60,22 +50,29 @@ def answer(hashes_list):
     suggList = []
     group_dict = {}
     r = get_cache('autosuggest')
-    for hashes in reversed(hashes_list):
+    count = 0
+    for hashes in hashes_list:
         di = {}
         result = r._client.hget("task", hashes)
-        rlist = result.split(':')
-        di['msg'] = rlist[0]
-        di['nameid'] = r._client.hget(hashes, 'nameid')
-        di['name'] = r._client.hget(hashes, 'name')
+        data = r._client.hgetall(hashes)
+
+        di['msg'] = result
+        di['nameid'] = data['nameid']
+        di['name'] = data['name']
         di['pid'] = hashes
-        ctime = r._client.hget(hashes, 'ctime')
+        ctime = data['ctime']
         ctime = datetime.strptime(ctime.split(' ')[0], '%Y-%m-%d')
         di['ctime'] = str(ctime.day) + ' ' + ctime.strftime("%B") + ' ' + str(ctime.year)
-        gp = r._client.hget(hashes, 'group')
+        gp = data['group']
+        gid = data['gid']
         di['group'] = gp
-        if group_dict.has_key(gp): 
-            group_dict[gp]+=1
+        key = gp+'_'+gid
+        if group_dict.has_key(key): 
+            group_dict[key]+=1
         else:
-            group_dict[gp] = 1;
+            group_dict[key] = 1;
         suggList.append(di)
+        count+=1
+        if count > 1000:
+            break
     return suggList, group_dict
