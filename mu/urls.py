@@ -11,7 +11,7 @@ urlpatterns = patterns('',
 
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
     url(r'^admin/', include(admin.site.urls)),
-   (r'^home/', 'mu.suggest.views.home'), 
+   (r'^', 'mu.suggest.views.home'), 
    (r'^search/', 'mu.suggest.views.autosuggest'),
 
    (r'^css/(?P<path>.*)$', 'django.views.static.serve', {'document_root': STATIC_PATH +'html/css/'}),
