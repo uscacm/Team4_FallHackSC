@@ -1,4 +1,5 @@
 import random
+import logging
 import simplejson
 from datetime import datetime
 from operator import itemgetter
@@ -7,19 +8,25 @@ from django.core.cache import get_cache
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 
+logg = logging.getLogger("travelLogger")
+logg_stats = logging.getLogger("travelLoggerSTATS")
+
 def home(request):
     """
     Landing method
     """
+    logg.info("Land")
     return render_to_response('home/home.html',{}, RequestContext(request, { }) )
 
 def autosuggest(request):
     """
     Auto suggest landing method
     """
+    logg.info("Search")
     try:
         if (request.GET.has_key('search')):
             searchWord = request.GET['search'].lower()
+            logg_stats.info("Keyword\t%s" % (searchWord))
             airList = []
             airList, group_dict = searchincludespace(searchWord)
             group_dict= sorted(group_dict.items(), key=itemgetter(1), reverse=True)
@@ -28,7 +35,7 @@ def autosuggest(request):
         else:
             return HttpResponse('{"result":"failed","desc":"No Matches Found"}')
     except Exception,e:
-        print e
+        logg_stats.critical("Search\t%s" % str(e))
         return HttpResponse('{"result":"failed","desc":"No Matches Found"}')
 
 def searchincludespace(words):
