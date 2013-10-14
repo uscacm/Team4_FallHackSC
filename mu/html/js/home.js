@@ -109,6 +109,8 @@ gi.suggest = {
 	},
  	about: function(){		
 		$g('aboutus').className = 'center';
+                this.hideCity();
+                this.hidePlaces();
 	},
  	goUp: function(){
  		var nodeCount = this.getElm.childNodes.length;
