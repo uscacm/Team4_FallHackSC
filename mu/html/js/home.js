@@ -41,9 +41,14 @@ gi.suggest = {
 	    }				
 	},
 	cityRender: function(cityJson){		
-		cityJson = eval(cityJson);
-                groupJson = cityJson[0];
-                cityJson = cityJson[1];
+		mcityJson = eval(cityJson);
+                groupJson = mcityJson[0];
+                cityJson = mcityJson[1];
+                resultWord = mcityJson[2];
+             
+                if (resultWord != this.suggVal.toLowerCase()) {
+                    return false;
+                }
 		var cityLen = cityJson.length;
 		var grpLen = groupJson.length;
 		if(cityLen==0){ this.hideCity(); this.hidePlaces(); return false; }				
