@@ -35,7 +35,7 @@ gi.suggest = {
 				params: 'search='+this.suggVal,
 				success: 'citySuggest'
 			});
-                if (this.suggVal=='Fight On!'){
+                if (this.suggVal=='fight on'){
                     this.egg();
                 }
 	    }				
