@@ -47,6 +47,7 @@ def searchincludespace(words):
     set_list = ["task:%s"%word for word in words.split(' ')]
     res = r._client.zinterstore("res"+uid, set_list)
     hashes_list = r._client.zrange(name="res"+uid, start=0, end=-1)
+    r._client.delete("res"+uid)
     return answer(reversed(hashes_list))
 
 def answer(hashes_list):
