@@ -1,3 +1,4 @@
+import re
 import random
 import logging
 import simplejson
@@ -31,7 +32,7 @@ def autosuggest(request):
             airList = []
             airList, group_dict = searchincludespace(searchWord)
             group_dict= sorted(group_dict.items(), key=itemgetter(1), reverse=True)
-            result = [ group_dict[:4], airList ]
+            result = [ group_dict[:4], airList, searchWord ]
             return HttpResponse(simplejson.dumps(result))
         else:
             return HttpResponse('{"result":"failed","desc":"No Matches Found"}')
@@ -48,9 +49,9 @@ def searchincludespace(words):
     res = r._client.zinterstore("res"+uid, set_list)
     hashes_list = r._client.zrange(name="res"+uid, start=0, end=-1)
     r._client.delete("res"+uid)
-    return answer(reversed(hashes_list))
+    return answer(reversed(hashes_list), words)
 
-def answer(hashes_list):
+def answer(hashes_list, words):
     """
     All the sentences corresponding
     to the hashes dreived
@@ -64,6 +65,8 @@ def answer(hashes_list):
         result = r._client.hget("task", hashes)
         data = r._client.hgetall(hashes)
 
+        for word in words.split(' '):
+            result = re.sub(r'(?i)%s'%word, '<span>'+word+'</span>', result)
         di['msg'] = result
         di['nameid'] = data['nameid']
         di['name'] = data['name']
