@@ -98,8 +98,8 @@ top:58px;background-color:#ffffff;}
 padding:0 5px 0;}
 .dn { display: none; }
 
-.data { display: block;  color: #660000; }
+.data { display: block;  color: black; font-size: 14px; line-height:18px; }
 #places { margin-top: 38px; }
 .author { float: right; color: black; font-size: 14px; }
-.ctime { color: #888; font-size: 15px; }
-.ctime_date { color: #888; font-size: 15px; }
+.ctime { color: #888; font-size: 14px; }
+.ctime_date { color: #888; font-size: 14px; }
