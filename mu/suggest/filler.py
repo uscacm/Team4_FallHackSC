@@ -10,8 +10,8 @@ class AutoSuggestFiller():
         Set up the data store
         """
         #sentences = [ "Take out the trash", "Talk to the school bus driver" ]
-        #for dmp in Dump.objects.all():
-        for dmp in Temp.objects.all():
+        for dmp in Dump.objects.all().order_by('-ctime')[:2]:
+            #for dmp in Temp.objects.all():
             index = int(dmp.pid.split('_')[1])
             #sentence = "%s : %s : %s : %s" % (attr.name, attr.suburb, attr.city, attr.state)
             sentence = dmp.msg
