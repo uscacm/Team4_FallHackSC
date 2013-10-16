@@ -10,13 +10,13 @@ from django.template import RequestContext
 from django.shortcuts import render_to_response
 
 logg = logging.getLogger("travelLogger")
-#logg_stats = logging.getLogger("travelLoggerSTATS")
+logg_stats = logging.getLogger("travelLoggerSTATS")
 
 def home(request):
     """
     Landing method
     """
-    #logg.info("Land")
+    logg.info("Land")
     return render_to_response('home/home.html',{}, RequestContext(request, { }) )
 
 def autosuggest(request):
@@ -28,9 +28,10 @@ def autosuggest(request):
         if (request.GET.has_key('search')):
             searchWord = request.GET['search'].lower()
             logg.info("Search_Inside")
-            #logg_stats.info("Keyword\t%s" % (searchWord))
+            logg_stats.info("Keyword\t%s" % (searchWord))
             airList = []
             airList, group_dict = searchincludespace(searchWord)
+            airList = sorted(airList, key=lambda k: k['cotime'], reverse=True) 
             group_dict= sorted(group_dict.items(), key=itemgetter(1), reverse=True)
             result = [ group_dict[:4], airList, searchWord ]
             return HttpResponse(simplejson.dumps(result))
@@ -49,7 +50,7 @@ def searchincludespace(words):
     res = r._client.zinterstore("res"+uid, set_list)
     hashes_list = r._client.zrange(name="res"+uid, start=0, end=-1)
     r._client.delete("res"+uid)
-    return answer(reversed(hashes_list), words)
+    return answer(hashes_list, words)
 
 def answer(hashes_list, words):
     """
@@ -59,8 +60,7 @@ def answer(hashes_list, words):
     suggList = []
     group_dict = {}
     r = get_cache('autosuggest')
-    count = 0
-    for hashes in hashes_list:
+    for hashes in hashes_list[:1000]:
         di = {}
         result = r._client.hget("task", hashes)
         data = r._client.hgetall(hashes)
@@ -73,6 +73,7 @@ def answer(hashes_list, words):
         di['pid'] = hashes
         ctime = data['ctime']
         ctime = datetime.strptime(ctime.split(' ')[0], '%Y-%m-%d')
+        di['cotime'] = int("%d%02d%02d" % ( ctime.year, ctime.month, ctime.day))
         di['ctime'] = str(ctime.day) + ' ' + ctime.strftime("%B") + ' ' + str(ctime.year)
         gp = data['group']
         gid = data['gid']
@@ -83,7 +84,4 @@ def answer(hashes_list, words):
         else:
             group_dict[key] = 1;
         suggList.append(di)
-        count+=1
-        if count > 1000:
-            break
     return suggList, group_dict
