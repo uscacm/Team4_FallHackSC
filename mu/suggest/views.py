@@ -5,7 +5,7 @@ import simplejson
 from datetime import datetime
 from operator import itemgetter
 from django.http import HttpResponse
-from django.core.cache import get_cache
+from django.core.cache import get_cache, cache
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 
@@ -19,6 +19,18 @@ def home(request):
     logg.info("Land")
     return render_to_response('home/home.html',{}, RequestContext(request, { }) )
 
+def get_data(key):
+    found=False
+    data = cache.get(key)
+    if data:
+       found=True 
+    logg_stats.info("Cache\tGet\t%s\t%s", key, found)
+    return data
+
+def set_data(data, key):
+    data = cache.set(key, data, 1000000)
+    logg_stats.info("Cache\tSet\t%s", key)
+
 def autosuggest(request):
     """
     Auto suggest landing method
@@ -27,17 +39,25 @@ def autosuggest(request):
     try:
         if (request.GET.has_key('search')):
             searchWord = request.GET['search'].lower()
-            logg.info("Search_Inside")
             logg_stats.info("Keyword\t%s" % (searchWord))
+
+            data = get_data(str(searchWord).strip())
+            if data:
+                return HttpResponse(data)
+
             airList = []
             airList, group_dict = searchincludespace(searchWord)
             airList = sorted(airList, key=lambda k: k['cotime'], reverse=True) 
             group_dict= sorted(group_dict.items(), key=itemgetter(1), reverse=True)
             result = [ group_dict[:4], airList, searchWord ]
-            return HttpResponse(simplejson.dumps(result))
+            json = simplejson.dumps(result)
+            if not data:
+                set_data(json, str(searchWord).strip())
+            return HttpResponse(json)
         else:
             return HttpResponse('{"result":"failed","desc":"No Matches Found"}')
     except Exception,e:
+        print str(e)
         return HttpResponse('{"result":"failed","desc":"No Matches Found"}')
 
 def searchincludespace(words):
@@ -60,7 +80,7 @@ def answer(hashes_list, words):
     suggList = []
     group_dict = {}
     r = get_cache('autosuggest')
-    for hashes in hashes_list[:1000]:
+    for hashes in hashes_list:
         di = {}
         result = r._client.hget("task", hashes)
         data = r._client.hgetall(hashes)
