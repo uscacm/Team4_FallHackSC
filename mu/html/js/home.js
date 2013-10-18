@@ -104,7 +104,8 @@ gi.suggest = {
 		this.getElm.className = 'dn';		
 	},
  	hidePlaces: function(){		
-		$g('places').className = 'dn';
+		//$g('places').className = 'dn';
+                $g('places').innerHTML ='<p>No result</p>';
 		$g('groups').className = 'dn';
 		$g('search_count').className = 'dn';
 	},
