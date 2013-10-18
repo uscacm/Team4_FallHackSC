@@ -20,6 +20,7 @@ def home(request):
     return render_to_response('home/home.html',{}, RequestContext(request, { }) )
 
 def get_data(key):
+    key = key.replace(" ", "_")
     found=False
     data = cache.get(key)
     if data:
@@ -28,6 +29,7 @@ def get_data(key):
     return data
 
 def set_data(data, key):
+    key = key.replace(" ", "_")
     data = cache.set(key, data, 1000000)
     logg_stats.info("Cache\tSet\t%s", key)
 
@@ -69,7 +71,7 @@ def searchincludespace(words):
     set_list = ["task:%s"%word for word in words.split(' ')]
     res = r._client.zinterstore("res"+uid, set_list)
     hashes_list = r._client.zrange(name="res"+uid, start=0, end=-1)
-    r._client.delete("res"+uid)
+    #r._client.delete("res"+uid)
     return answer(hashes_list, words)
 
 def answer(hashes_list, words):
@@ -80,7 +82,7 @@ def answer(hashes_list, words):
     suggList = []
     group_dict = {}
     r = get_cache('autosuggest')
-    for hashes in hashes_list:
+    for hashes in hashes_list[:500]:
         di = {}
         result = r._client.hget("task", hashes)
         data = r._client.hgetall(hashes)
